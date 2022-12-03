@@ -1,8 +1,7 @@
 import React, { useEffect } from 'react';
 import { createContext, useState } from 'react';
-import { createUserWithEmailAndPassword, getAuth, onAuthStateChanged } from 'firebase/auth'
+import { createUserWithEmailAndPassword, getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut } from 'firebase/auth'
 import app from '../../Firebase/Firebase.config';
-import { current } from 'daisyui/src/colors';
 
 export const AuthContext = createContext();
 const auth = getAuth(app)
@@ -12,13 +11,25 @@ const AuthProvider = ({ children }) => {
     const [loading, setLoading] = useState(true);
 
     const createUser = (email, password) =>{
+        setLoading(true);
         return createUserWithEmailAndPassword(auth, email, password)
+    }
+
+    const login = (email, password) =>{
+        setLoading(true);
+        return signInWithEmailAndPassword(auth, email, password);
+    }
+
+    const logOut = () => {
+        localStorage.removeItem('genius-token');
+        return signOut(auth);
     }
 
     useEffect(()=>{
       const unsubscribe = onAuthStateChanged(auth, currentUser =>{
             console.log(currentUser)
-            setUser(currentUser)
+            setUser(currentUser);
+            setLoading(false);
         })
         return () => {
            return unsubscribe();
@@ -27,6 +38,8 @@ const AuthProvider = ({ children }) => {
 
     const authInfo = {
         user,
+        login,
+        logOut,
         loading,
         createUser
     }
